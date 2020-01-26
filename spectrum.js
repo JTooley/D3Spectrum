@@ -161,7 +161,7 @@ function draw() {
       .attr("d", d3.line()
               .x(function(d) { return x(d.x) })
               .y(function(d) { return y(d.y) })
-              .defined(function(d) { return !isNaN(d.y); });
+              .defined(function(d) { return !isNaN(d.y); })
               )
 }
 
