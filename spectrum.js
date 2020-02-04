@@ -2,7 +2,7 @@
 
 var soundFile;
 var fft;
-var fftBands = 2048;
+var fftBands = 1024;
 
 var description = 'loading';
 var p;
@@ -90,6 +90,17 @@ function setup() {
     .attr("clip-path", "url(#clip)")
 }
 
+// gridlines in x axis function
+function make_x_gridlines() {		
+    return d3.axisBottom(x)
+        .ticks(5)
+}
+
+// gridlines in y axis function
+function make_y_gridlines() {		
+    return d3.axisLeft(y)
+        .ticks(5)
+}
 
 function draw() {
 
@@ -136,6 +147,21 @@ function draw() {
         .attr("class", "brush")
         .call(brush);
 
+    // Add X gridlines
+    xAxis = svg.append('g')
+      .attr("transform", "translate(0," + height + ")")
+      .call(make_x_gridlines()
+        .tickSize(-height)
+        .tickFormat("")
+      );
+
+    // Add Y gridlines
+    yAxis = svg.append('g')
+      .call(make_y_gridlines()
+        .tickSize(-width)
+        .tickFormat("")
+      );
+
     // Add X axis 
     xAxis = svg.append('g')
       .attr("transform", "translate(0," + height + ")")
@@ -145,7 +171,15 @@ function draw() {
     yAxis = svg.append('g')
       .call(d3.axisLeft(y));
 
+    console.log(width);
     // Add centreLine
+    centreLine = svg.append('line')
+    .style("stroke", "black")  // colour the line
+    .attr("stroke-dasharray", "10,10")
+    .attr("x1", width / 2)     // x position of the first end of the line
+    .attr("y1", 0)      // y position of the first end of the line
+    .attr("x2", width / 2)     // x position of the second end of the line
+    .attr("y2", height); 
     
   }
 
