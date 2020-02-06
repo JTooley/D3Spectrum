@@ -11,6 +11,10 @@ var clip;
 var brush;
 var graphLine;
 var centreLine;
+var cursorLineV;
+var cursorLineH;
+var cursorBoxX;
+var cursorBoxY;
 
 var currXMax = 0;
 var currYMax = 0;
@@ -18,6 +22,8 @@ var redrawAxis = false;
 
 var x;
 var y;
+
+var cursorX = -1;
 
 
 // This will be an array of amplitude values from lowest to highest frequencies
@@ -71,6 +77,11 @@ function setup() {
         .attr("x", 0)
         .attr("y", 0);
 
+  svg.on('mousemove', function() {
+          cursorX = d3.mouse(d3.event.target)[0];
+          // console.log( xscale.invert(cursorX) ); // log the mouse x,y position
+        });
+  
   // If user double click, reinitialize the chart
   svg.on("dblclick",function(){
     start = 0;
@@ -139,11 +150,12 @@ function draw() {
   {
     redrawAxis = false;
     svg.selectAll('g').remove();
+    svg.selectAll('line').remove();
 
     graphLine = svg.append('g')
     .attr("clip-path", "url(#clip)");
 
-    graphLine.append('g')
+    svg.append('g')
         .attr("class", "brush")
         .call(brush);
 
@@ -171,7 +183,6 @@ function draw() {
     yAxis = svg.append('g')
       .call(d3.axisLeft(y));
 
-    console.log(width);
     // Add centreLine
     centreLine = svg.append('line')
     .style("stroke", "black")  // colour the line
@@ -183,20 +194,61 @@ function draw() {
     
   }
 
+  //console.log(frequencySpectrum[cursorX]);
+  
+  // Add the line
+  svg.selectAll("path").remove();
+  graphLine.append("path")
+    .datum(lineData)
+    .attr("class", "line")  // I add the class line to be able to modify this line later on.
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 1.5)
+    .attr("d", d3.line()
+            .x(function(d) { return x(d.x) })
+            .y(function(d) { return y(d.y) })
+            .defined(function(d) { return !isNaN(d.y); })
+            )
 
-      // Add the line
-    svg.selectAll("path").remove();
-    graphLine.append("path")
-      .datum(lineData)
-      .attr("class", "line")  // I add the class line to be able to modify this line later on.
-      .attr("fill", "none")
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", 1.5)
-      .attr("d", d3.line()
-              .x(function(d) { return x(d.x) })
-              .y(function(d) { return y(d.y) })
-              .defined(function(d) { return !isNaN(d.y); })
-              )
+    // Add the line
+    if (cursorLineV) {
+      cursorLineV.remove();
+    }
+    cursorLineV = graphLine.append('line')
+      .style("stroke", "red")  // colour the line
+      .attr("x1", cursorX)     // x position of the first end of the line
+      .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
+      .attr("x2", cursorX)     // x position of the second end of the line
+      .attr("y2", height);
+
+    // Add the line
+    if (cursorLineH) {
+      cursorLineH.remove();
+    }
+    cursorLineH = graphLine.append('line')
+      .style("stroke", "red")  // colour the line
+      .attr("x1", 0)     // x position of the first end of the line
+      .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
+      .attr("x2", cursorX)     // x position of the second end of the line
+      .attr("y2", y(frequencySpectrum[cursorX]));
+
+    if (cursorBoxX) {
+      cursorBoxX.remove();
+    }
+    cursorBoxX = svg.append("g")
+      .attr("transform",
+          "translate(" + cursorX + "," + (height + 30)  + ")");
+    cursorBoxX.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("width", 50)
+      .attr("height", 25)
+      .attr("fill", "red");
+    cursorBoxX.append("text")
+      .attr("x", 12)
+      .attr("y", 20)
+      .text(cursorX);
+
 }
 
 // A function that set idleTimeOut to null
@@ -205,8 +257,6 @@ function idled() { idleTimeout = null; }
 
 // A function that update the chart for given boundaries
 function updateChart() {
-
-  console.log("updateChart");
 
   // What are the selected boundaries?
   extent = d3.event.selection
