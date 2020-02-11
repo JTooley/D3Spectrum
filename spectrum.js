@@ -24,6 +24,7 @@ var x;
 var y;
 
 var cursorX = -1;
+var showCursor = false;
 
 
 // This will be an array of amplitude values from lowest to highest frequencies
@@ -33,7 +34,7 @@ var frequencySpectrum = [];
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = 1280 - margin.left - margin.right,
-    height = 960 - margin.top - margin.bottom;
+    height = 350 - margin.top - margin.bottom;
 
 var start = 0;
 var end = fftBands;
@@ -79,7 +80,13 @@ function setup() {
 
   svg.on('mousemove', function() {
           cursorX = d3.mouse(d3.event.target)[0];
-          // console.log( xscale.invert(cursorX) ); // log the mouse x,y position
+        });
+
+  svg.on('mouseenter', function() {
+          showCursor = true;
+        });
+  svg.on('mouseleave', function() {
+          showCursor = false;
         });
   
   // If user double click, reinitialize the chart
@@ -214,40 +221,41 @@ function draw() {
     if (cursorLineV) {
       cursorLineV.remove();
     }
-    cursorLineV = graphLine.append('line')
-      .style("stroke", "red")  // colour the line
-      .attr("x1", cursorX)     // x position of the first end of the line
-      .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
-      .attr("x2", cursorX)     // x position of the second end of the line
-      .attr("y2", height);
-
-    // Add the line
     if (cursorLineH) {
       cursorLineH.remove();
     }
-    cursorLineH = graphLine.append('line')
-      .style("stroke", "red")  // colour the line
-      .attr("x1", 0)     // x position of the first end of the line
-      .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
-      .attr("x2", cursorX)     // x position of the second end of the line
-      .attr("y2", y(frequencySpectrum[cursorX]));
-
     if (cursorBoxX) {
       cursorBoxX.remove();
     }
-    cursorBoxX = svg.append("g")
-      .attr("transform",
-          "translate(" + cursorX + "," + (height + 30)  + ")");
-    cursorBoxX.append("rect")
-      .attr("x", 0)
-      .attr("y", 0)
-      .attr("width", 50)
-      .attr("height", 25)
-      .attr("fill", "red");
-    cursorBoxX.append("text")
-      .attr("x", 12)
-      .attr("y", 20)
-      .text(cursorX);
+    if (showCursor) {
+      cursorLineV = graphLine.append('line')
+        .style("stroke", "red")  // colour the line
+        .attr("x1", cursorX)     // x position of the first end of the line
+        .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
+        .attr("x2", cursorX)     // x position of the second end of the line
+        .attr("y2", height);
+
+      cursorLineH = graphLine.append('line')
+        .style("stroke", "red")  // colour the line
+        .attr("x1", 0)     // x position of the first end of the line
+        .attr("y1", y(frequencySpectrum[cursorX]))      // y position of the first end of the line
+        .attr("x2", cursorX)     // x position of the second end of the line
+        .attr("y2", y(frequencySpectrum[cursorX]));
+
+      cursorBoxX = svg.append("g")
+        .attr("transform",
+            "translate(" + (cursorX - 25) + "," + (height + 30)  + ")");
+      cursorBoxX.append("rect")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("width", 50)
+        .attr("height", 25)
+        .attr("fill", "red");
+      cursorBoxX.append("text")
+        .attr("x", 12)
+        .attr("y", 20)
+        .text(cursorX);
+    }
 
 }
 
